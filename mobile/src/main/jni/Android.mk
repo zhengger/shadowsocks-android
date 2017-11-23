@@ -85,21 +85,13 @@ include $(BUILD_STATIC_LIBRARY)
 include $(CLEAR_VARS)
 
 LIBEVENT_SOURCES := \
-	buffer.c \
-	bufferevent.c bufferevent_filter.c \
-	bufferevent_pair.c bufferevent_ratelim.c \
-	bufferevent_sock.c epoll.c \
-	epoll_sub.c evdns.c event.c \
-    event_tagging.c evmap.c \
-	evrpc.c evthread.c \
-	evthread_pthread.c evutil.c \
-	evutil_rand.c http.c \
-	listener.c log.c poll.c \
-	select.c signal.c strlcpy.c
+	buffer.c bufferevent.c event.c \
+	bufferevent_sock.c bufferevent_ratelim.c \
+	evthread.c log.c evutil.c evutil_time.c evmap.c epoll.c poll.c signal.c select.c
 
 LOCAL_MODULE := event
 LOCAL_SRC_FILES := $(addprefix libevent/, $(LIBEVENT_SOURCES))
-LOCAL_CFLAGS := -O2 -D_EVENT_HAVE_ARC4RANDOM -I$(LOCAL_PATH)/libevent \
+LOCAL_CFLAGS := -O2 -I$(LOCAL_PATH)/libevent \
 	-I$(LOCAL_PATH)/libevent/include \
 
 include $(BUILD_STATIC_LIBRARY)
@@ -186,26 +178,7 @@ LOCAL_SRC_FILES := $(addprefix shadowsocks-libev/libcork/src/libcork/,$(CORK_SOU
 include $(BUILD_STATIC_LIBRARY)
 
 ########################################################
-## libudns
-########################################################
-
-include $(CLEAR_VARS)
-
-UDNS_SOURCES := udns_dn.c udns_dntosp.c udns_parse.c udns_resolver.c udns_init.c \
-	udns_misc.c udns_XtoX.c \
-	udns_rr_a.c udns_rr_ptr.c udns_rr_mx.c udns_rr_txt.c udns_bl.c \
-	udns_rr_srv.c udns_rr_naptr.c udns_codes.c udns_jran.c
-
-LOCAL_MODULE := libudns
-LOCAL_CFLAGS += -O2 -I$(LOCAL_PATH)/libudns \
-				-DHAVE_DECL_INET_NTOP
-
-LOCAL_SRC_FILES := $(addprefix libudns/,$(UDNS_SOURCES))
-
-include $(BUILD_STATIC_LIBRARY)
-
-########################################################
-## libev 
+## libev
 ########################################################
 
 include $(CLEAR_VARS)
@@ -215,7 +188,7 @@ LOCAL_CFLAGS += -O2 -DNDEBUG -DHAVE_CONFIG_H \
 				-I$(LOCAL_PATH)/include/libev
 LOCAL_SRC_FILES := \
 	libev/ev.c \
-	libev/event.c 
+	libev/event.c
 
 include $(BUILD_STATIC_LIBRARY)
 
@@ -257,14 +230,13 @@ SHADOWSOCKS_SOURCES := local.c \
 LOCAL_MODULE    := ss-local
 LOCAL_SRC_FILES := $(addprefix shadowsocks-libev/src/, $(SHADOWSOCKS_SOURCES))
 LOCAL_CFLAGS    := -Wall -O2 -fno-strict-aliasing -DMODULE_LOCAL \
-					-DUSE_CRYPTO_MBEDTLS -DANDROID -DHAVE_CONFIG_H \
+					-DUSE_CRYPTO_MBEDTLS -DHAVE_CONFIG_H \
 					-DCONNECT_IN_PROGRESS=EINPROGRESS \
 					-I$(LOCAL_PATH)/include/shadowsocks-libev \
 					-I$(LOCAL_PATH)/include \
 					-I$(LOCAL_PATH)/libancillary \
 					-I$(LOCAL_PATH)/mbedtls/include  \
 					-I$(LOCAL_PATH)/pcre \
-					-I$(LOCAL_PATH)/libudns \
 					-I$(LOCAL_PATH)/libsodium/src/libsodium/include \
 					-I$(LOCAL_PATH)/libsodium/src/libsodium/include/sodium \
 					-I$(LOCAL_PATH)/shadowsocks-libev/libcork/include \
@@ -272,7 +244,7 @@ LOCAL_CFLAGS    := -Wall -O2 -fno-strict-aliasing -DMODULE_LOCAL \
 					-I$(LOCAL_PATH)/shadowsocks-libev/libbloom \
 					-I$(LOCAL_PATH)/libev
 
-LOCAL_STATIC_LIBRARIES := libev libmbedtls libipset libcork libbloom libudns \
+LOCAL_STATIC_LIBRARIES := libev libmbedtls libipset libcork libbloom \
 	libsodium libancillary libpcre
 
 LOCAL_LDLIBS := -llog
@@ -294,11 +266,10 @@ SHADOWSOCKS_SOURCES := tunnel.c \
 LOCAL_MODULE    := ss-tunnel
 LOCAL_SRC_FILES := $(addprefix shadowsocks-libev/src/, $(SHADOWSOCKS_SOURCES))
 LOCAL_CFLAGS    := -Wall -O2 -fno-strict-aliasing -DMODULE_TUNNEL \
-					-DUSE_CRYPTO_MBEDTLS -DANDROID -DHAVE_CONFIG_H -DSSTUNNEL_JNI \
+					-DUSE_CRYPTO_MBEDTLS -DHAVE_CONFIG_H -DSSTUNNEL_JNI \
 					-DCONNECT_IN_PROGRESS=EINPROGRESS \
 					-I$(LOCAL_PATH)/libancillary \
 					-I$(LOCAL_PATH)/include \
-					-I$(LOCAL_PATH)/libudns \
 					-I$(LOCAL_PATH)/libsodium/src/libsodium/include \
 					-I$(LOCAL_PATH)/libsodium/src/libsodium/include/sodium \
 					-I$(LOCAL_PATH)/mbedtls/include \
@@ -307,7 +278,7 @@ LOCAL_CFLAGS    := -Wall -O2 -fno-strict-aliasing -DMODULE_TUNNEL \
 					-I$(LOCAL_PATH)/shadowsocks-libev/libbloom \
 					-I$(LOCAL_PATH)/include/shadowsocks-libev
 
-LOCAL_STATIC_LIBRARIES := libev libmbedtls libsodium libcork libbloom libudns libancillary
+LOCAL_STATIC_LIBRARIES := libev libmbedtls libsodium libcork libbloom libancillary
 
 LOCAL_LDLIBS := -llog
 
@@ -339,7 +310,7 @@ include $(CLEAR_VARS)
 
 LOCAL_CFLAGS := -std=gnu99
 LOCAL_CFLAGS += -DBADVPN_THREADWORK_USE_PTHREAD -DBADVPN_LINUX -DBADVPN_BREACTOR_BADVPN -D_GNU_SOURCE
-LOCAL_CFLAGS += -DBADVPN_USE_SELFPIPE -DBADVPN_USE_EPOLL
+LOCAL_CFLAGS += -DBADVPN_USE_SIGNALFD -DBADVPN_USE_EPOLL
 LOCAL_CFLAGS += -DBADVPN_LITTLE_ENDIAN -DBADVPN_THREAD_SAFE
 LOCAL_CFLAGS += -DNDEBUG -DANDROID
 # LOCAL_CFLAGS += -DTUN2SOCKS_JNI
